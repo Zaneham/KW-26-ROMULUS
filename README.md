@@ -65,7 +65,7 @@ Besides the obvious joy of implementing something you are explicitly not suppose
 1. **LFSR stream cipher principles** - the foundation of much modern cryptography
 2. **The transition era** - from rotors to electronics in military cryptography
 3. **Operational security** - how key management worked in practice
-4. **Why algorithms stay classified** - because someone, somewhere, is probably still using something quite like this
+4. **Why algorithms stay classified** - because someone, somewhere, is probably still using something quite like this and/or someone forgot to do the paperwork.
 
 ## Usage
 

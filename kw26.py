@@ -479,5 +479,96 @@ def demo():
     print("=" * 60)
 
 
+# =============================================================================
+# COMMAND LINE INTERFACE
+# =============================================================================
+
+def cli():
+    """
+    Command line interface for the KW-26 reconstruction.
+
+    Because every good cipher deserves a way to be invoked
+    from a terminal, even if that terminal is not a teletype.
+    """
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(
+        description='KW-26 ROMULUS - A Plausible Reconstruction',
+        epilog='This is NOT the actual KW-26 algorithm. Obviously.'
+    )
+
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
+
+    # encrypt command
+    encrypt_parser = subparsers.add_parser('encrypt', help='Encrypt a message')
+    encrypt_parser.add_argument('message', help='Message to encrypt (uppercase letters, numbers, basic punctuation)')
+    encrypt_parser.add_argument('--key', '-k', help='Hex key (32 chars). If omitted, uses test key.')
+
+    # decrypt command
+    decrypt_parser = subparsers.add_parser('decrypt', help='Decrypt Baudot codes')
+    decrypt_parser.add_argument('codes', nargs='+', type=int, help='Space-separated Baudot codes')
+    decrypt_parser.add_argument('--key', '-k', help='Hex key (32 chars). Must match encryption key.')
+
+    # keygen command
+    subparsers.add_parser('keygen', help='Generate a random cryptovariable')
+
+    # demo command
+    subparsers.add_parser('demo', help='Run demonstration')
+
+    # keystream command
+    ks_parser = subparsers.add_parser('keystream', help='Generate raw keystream bits')
+    ks_parser.add_argument('--bits', '-n', type=int, default=100, help='Number of bits (default: 100)')
+    ks_parser.add_argument('--key', '-k', help='Hex key (32 chars)')
+
+    args = parser.parse_args()
+
+    if args.command is None:
+        parser.print_help()
+        return
+
+    # Parse key if provided
+    def get_cipher(key_hex=None):
+        if key_hex:
+            try:
+                cv = bytes.fromhex(key_hex)
+                return KW26(cv)
+            except ValueError:
+                print("Error: Key must be valid hexadecimal", file=sys.stderr)
+                sys.exit(1)
+        return KW26()
+
+    if args.command == 'encrypt':
+        cipher = get_cipher(getattr(args, 'key', None))
+        ciphertext = cipher.encrypt(args.message.upper())
+        print(f"Plaintext:  {args.message.upper()}")
+        print(f"Ciphertext: {' '.join(str(c) for c in ciphertext)}")
+        print(f"\nTo decrypt: python kw26.py decrypt {' '.join(str(c) for c in ciphertext)}")
+
+    elif args.command == 'decrypt':
+        cipher = get_cipher(getattr(args, 'key', None))
+        plaintext = cipher.decrypt(args.codes)
+        print(f"Ciphertext: {' '.join(str(c) for c in args.codes)}")
+        print(f"Plaintext:  {plaintext}")
+
+    elif args.command == 'keygen':
+        cv = generate_cryptovariable()
+        print(f"Cryptovariable: {cv.hex()}")
+        print(f"\nUse with: python kw26.py encrypt --key {cv.hex()} \"MESSAGE\"")
+        print("(Keep this secret. The NSA recommends destroying after use.)")
+        print("(You are not obliged to follow NSA recommendations.)")
+
+    elif args.command == 'keystream':
+        cipher = get_cipher(getattr(args, 'key', None))
+        bits = [cipher.generate_keystream_bit() for _ in range(args.bits)]
+        print(f"Keystream ({args.bits} bits):")
+        print(''.join(str(b) for b in bits))
+        ones = sum(bits)
+        print(f"\nDistribution: {ones} ones, {args.bits - ones} zeros ({100*ones/args.bits:.1f}% ones)")
+
+    elif args.command == 'demo':
+        demo()
+
+
 if __name__ == "__main__":
-    demo()
+    cli()

@@ -69,14 +69,38 @@ Besides the obvious joy of implementing something you are explicitly not suppose
 
 ## Usage
 
+### Command Line
+
 For those who wish to pretend it is 1962 and they have a very important telegram to send:
 
-```python
-from kw26 import KW26, load_cryptovariable
+```bash
+# Encrypt a message
+python kw26.py encrypt "SECRET MESSAGE"
 
-# Load cryptovariable from simulated punch card
+# Decrypt (using the codes from encrypt output)
+python kw26.py decrypt 16 6 10 18 17 2 0 28 22 5 5 11 26 23
+
+# Generate a cryptovariable (the NSA recommends destroying after use)
+python kw26.py keygen
+
+# Encrypt with a specific key
+python kw26.py encrypt --key b3340ae5327e896c730fe9ffc6b4ad8c "MESSAGE"
+
+# Examine the keystream (for the cryptographically curious)
+python kw26.py keystream --bits 100
+
+# Run the demonstration
+python kw26.py demo
+```
+
+### As a Library
+
+```python
+from kw26 import KW26, generate_cryptovariable
+
+# Generate a cryptovariable
 # (Real operators had to destroy the card after use. You do not.)
-cv = load_cryptovariable("keycard_001.cv")
+cv = generate_cryptovariable()
 
 # Initialize cipher
 cipher = KW26(cv)
@@ -88,7 +112,8 @@ ciphertext = cipher.encrypt(plaintext)
 # Decrypt
 # (Assuming your counterpart has the same cryptovariable,
 #  which they should, unless someone has made a terrible mistake)
-decrypted = cipher.decrypt(ciphertext)
+cipher_rx = KW26(cv)  # Fresh cipher, same key
+decrypted = cipher_rx.decrypt(ciphertext)
 ```
 
 ## References

@@ -137,6 +137,3 @@ Zane Hambly, 2025
 
 A person with too much free time and an unreasonable interest in things that blink and go beep.
 
----
-
-*"The specific algorithm remains classified. The principles are eternal. The documentation is incomplete. The coffee is cold."*
